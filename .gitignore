@@ -1,4 +1,45 @@
 .idea
 bin/
 .env
+.env.local
+.env.production
+.env.staging
 vendor/
+.vercel
+
+# Railway deployment files
+.railway/
+railway.json
+railway.toml
+
+# Runtime and build artifacts
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Database dumps
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.cert
+
+# AI agent
+.claude

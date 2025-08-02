@@ -3,7 +3,6 @@ const canvas = document.getElementById('canvas');
 const photo = document.getElementById('photo');
 
 // open the camera and capture the image
-
 window.onload = () => {
     navigator.mediaDevices.getUserMedia({ video: true })
         .then((stream) => {

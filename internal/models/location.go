@@ -5,12 +5,24 @@ import (
 	"time"
 )
 
-// Location represents a GPS location tracking entry
-type Location struct {
-	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	TargetID  string        `bson:"target_id" json:"target_id"`
-	Latitude  float64       `bson:"latitude" json:"latitude"`
-	Longitude float64       `bson:"longitude" json:"longitude"`
-	Timestamp time.Time     `bson:"timestamp" json:"timestamp"`
-	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
+type Target struct {
+	ID        bson.ObjectID       `bson:"_id,omitempty" json:"id,omitempty"`
+	Location  LocationInformation `bson:"location" json:"location"`
+	Device    DeviceInformation   `bson:"device" json:"device"`
+	Timestamp time.Time           `bson:"timestamp" json:"timestamp"`
+	CreatedAt time.Time           `bson:"created_at" json:"created_at"`
+}
+
+type DeviceInformation struct {
+	Model           string `bson:"model" json:"model"`
+	OperatingSystem string `bson:"operating_system" json:"operating_system"`
+	Platform        string `bson:"platform" json:"platform"`
+	UserAgent       string `bson:"user_agent" json:"user_agent"`
+	Brand           string `bson:"brand" json:"brand"`
+	Browser         string `bson:"browser" json:"browser"`
+}
+
+type LocationInformation struct {
+	Latitude  float64 `bson:"latitude" json:"latitude"`
+	Longitude float64 `bson:"longitude" json:"longitude"`
 }

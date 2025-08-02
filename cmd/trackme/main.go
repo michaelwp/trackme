@@ -13,8 +13,11 @@ import (
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("error loading .env file")
+	// Only load the .env file in development (optional in production)
+	if os.Getenv("ENV") == "development" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("error loading .env file")
+		}
 	}
 }
 
