@@ -2,15 +2,14 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
 	"github.com/michaelwp/trackme/internal/models"
 	"github.com/michaelwp/trackme/internal/repository"
 	"time"
 )
 
-type locationRequest struct {
-	Latitude  float64 `json:"latitude" validate:"required"`
-	Longitude float64 `json:"longitude" validate:"required"`
+type targetRequest struct {
+	Location models.LocationInformation `json:"location" validate:"required"`
+	Device   models.DeviceInformation   `json:"device" validate:"required"`
 }
 
 type LocationHandler interface {
@@ -29,25 +28,17 @@ func NewLocationHandler(locationRepository repository.LocationRepository) Locati
 }
 
 func (l locationHandler) SaveLocation(c fiber.Ctx) error {
-	location := new(locationRequest)
+	target := new(targetRequest)
 
-	if err := c.Bind().All(location); err != nil {
+	if err := c.Bind().All(target); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
 	}
 
-	targetID, err := uuid.NewUUID()
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to generate UUID",
-		})
-	}
-
-	locationModel := &models.Location{
-		TargetID:  targetID.String(),
-		Latitude:  location.Latitude,
-		Longitude: location.Longitude,
+	locationModel := &models.Target{
+		Location:  target.Location,
+		Device:    target.Device,
 		Timestamp: time.Now(),
 	}
 

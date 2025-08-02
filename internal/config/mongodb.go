@@ -61,7 +61,7 @@ func ConnectDB() error {
 		Database: client.Database(dbName),
 	}
 
-	fmt.Println("Successfully connected to MongoDB!")
+	log.Println("Successfully connected to MongoDB!")
 	return nil
 }
 

@@ -14,4 +14,7 @@ run:
 	@echo "Running $(BINARY_NAME) ..."
 	@./$(BINARY_PATH)
 
-.PHONY: build
+deploy-railway:
+	@./scripts/deploy-railway.sh
+
+.PHONY: build run deploy
