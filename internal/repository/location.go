@@ -42,15 +42,6 @@ func (r *locationRepository) Create(target *models.Target) error {
 	target.ID = result.InsertedID.(bson.ObjectID)
 	log.Printf("Successfully inserted document with ID: %s", target.ID.Hex())
 
-	// Verify the document was actually saved by trying to find it
-	var saved models.Target
-	findErr := r.collection.FindOne(ctx, bson.M{"_id": target.ID}).Decode(&saved)
-	if findErr != nil {
-		log.Printf("WARNING: Document was inserted but cannot be found immediately: %v", findErr)
-	} else {
-		log.Printf("Verification: Document exists in database with ID: %s", saved.ID.Hex())
-	}
-
 	return nil
 }
 

