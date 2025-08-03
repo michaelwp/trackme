@@ -1,14 +1,16 @@
 package handlers
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/michaelwp/trackme/internal/config"
 	"github.com/michaelwp/trackme/internal/repository"
 )
 
-func SetupRoutes(app *fiber.App) {
+func SetupRoutes(app *fiber.App, s3Client *s3.Client, s3Config *config.S3Config) {
 	locationRepo := repository.NewLocationRepository()
-	locationHandler := NewLocationHandler(locationRepo)
+	locationHandler := NewLocationHandler(locationRepo, s3Client, s3Config)
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"}, // Allow requests from any origin (for development, be more specific in production)
@@ -22,4 +24,5 @@ func SetupRoutes(app *fiber.App) {
 
 	app.Post("/locations", locationHandler.SaveLocation)
 	app.Get("/locations", locationHandler.GetLocations)
+	app.Post("/locations/photos", locationHandler.UploadPhoto)
 }
