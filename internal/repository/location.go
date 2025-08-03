@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/michaelwp/trackme/internal/config"
@@ -13,6 +14,7 @@ import (
 type LocationRepository interface {
 	Create(location *models.Target) error
 	GetAll() ([]models.Target, error)
+	UpdatePhoto(id string, photo models.Photo) error
 }
 
 type locationRepository struct {
@@ -33,10 +35,22 @@ func (r *locationRepository) Create(target *models.Target) error {
 
 	result, err := r.collection.InsertOne(ctx, target)
 	if err != nil {
+		log.Printf("Failed to insert document: %v", err)
 		return err
 	}
 
 	target.ID = result.InsertedID.(bson.ObjectID)
+	log.Printf("Successfully inserted document with ID: %s", target.ID.Hex())
+
+	// Verify the document was actually saved by trying to find it
+	var saved models.Target
+	findErr := r.collection.FindOne(ctx, bson.M{"_id": target.ID}).Decode(&saved)
+	if findErr != nil {
+		log.Printf("WARNING: Document was inserted but cannot be found immediately: %v", findErr)
+	} else {
+		log.Printf("Verification: Document exists in database with ID: %s", saved.ID.Hex())
+	}
+
 	return nil
 }
 
@@ -56,4 +70,39 @@ func (r *locationRepository) GetAll() ([]models.Target, error) {
 	}
 
 	return locations, nil
+}
+
+func (r *locationRepository) UpdatePhoto(id string, photo models.Photo) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Printf("Invalid ObjectID format: %s, error: %v", id, err)
+		return err
+	}
+
+	result, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.M{"photo": photo}},
+	)
+
+	if err != nil {
+		log.Printf("MongoDB update error: %v", err)
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		log.Printf("No document found with ID: %s", objectID.Hex())
+		return mongo.ErrNoDocuments
+	}
+
+	if result.ModifiedCount == 0 {
+		log.Printf("Document found but not modified for ID: %s", objectID.Hex())
+	} else {
+		log.Printf("Successfully updated photo for document ID: %s", objectID.Hex())
+	}
+
+	return nil
 }

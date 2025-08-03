@@ -1,15 +1,16 @@
 package main
 
 import (
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/joho/godotenv"
 	"github.com/michaelwp/trackme/internal/config"
 	"github.com/michaelwp/trackme/internal/handlers"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func init() {
@@ -22,8 +23,21 @@ func init() {
 }
 
 func main() {
-	// Initialize database connection
+	// Initialize mongo database connection
 	err := config.ConnectDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Initialize AWSS3
+	s3Config := config.NewS3Config(
+		os.Getenv("AWS_S3_REGION"),
+		os.Getenv("AWS_ACCESS_KEY_ID"),
+		os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		os.Getenv("AWS_S3_BUCKET"),
+	)
+
+	s3Client, err := s3Config.NewS3Client()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,7 +46,7 @@ func main() {
 	app := fiber.New()
 
 	// Setup routes
-	handlers.SetupRoutes(app)
+	handlers.SetupRoutes(app, s3Client, s3Config)
 
 	// Serve static files from the web / static directory
 	app.Use(static.New("./web"))
