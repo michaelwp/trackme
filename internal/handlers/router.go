@@ -5,12 +5,10 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/michaelwp/trackme/internal/config"
-	"github.com/michaelwp/trackme/internal/repository"
 )
 
 func SetupRoutes(app *fiber.App, s3Client *s3.Client, s3Config *config.S3Config) {
-	locationRepo := repository.NewLocationRepository()
-	locationHandler := NewLocationHandler(locationRepo, s3Client, s3Config)
+	locationHandler := NewLocationHandler(s3Client, s3Config)
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"}, // Allow requests from any origin (for development, be more specific in production)

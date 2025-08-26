@@ -36,23 +36,48 @@ func ConnectDB() error {
 	}
 
 	// Create context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Set client options
-	clientOptions := options.Client().ApplyURI(mongoURI)
+	// Set client options with retry and timeout configurations
+	clientOptions := options.Client().
+		ApplyURI(mongoURI).
+		SetConnectTimeout(30 * time.Second).
+		SetServerSelectionTimeout(30 * time.Second).
+		SetRetryWrites(true).
+		SetRetryReads(true).
+		SetMaxConnIdleTime(30 * time.Second).
+		SetMaxPoolSize(10).
+		SetMinPoolSize(1)
 
-	// Connect to MongoDB
-	client, err := mongo.Connect(clientOptions)
-	if err != nil {
-		log.Println("Failed to connect to MongoDB:", err)
-		return fmt.Errorf("failed to connect to MongoDB: %w", err)
+	// Connect to MongoDB with retries
+	var client *mongo.Client
+	var err error
+	maxRetries := 3
+	for i := 0; i < maxRetries; i++ {
+		client, err = mongo.Connect(clientOptions)
+		if err != nil {
+			log.Printf("Failed to connect to MongoDB (attempt %d/%d): %v", i+1, maxRetries, err)
+			if i < maxRetries-1 {
+				time.Sleep(time.Duration(i+1) * 2 * time.Second)
+				continue
+			}
+			return fmt.Errorf("failed to connect to MongoDB after %d attempts: %w", maxRetries, err)
+		}
+		break
 	}
 
-	// Test the connection
-	if err := client.Ping(ctx, readpref.Primary()); err != nil {
-		log.Println("Failed to ping MongoDB:", err)
-		return fmt.Errorf("failed to ping MongoDB: %w", err)
+	// Test the connection with retries
+	for i := 0; i < maxRetries; i++ {
+		if err := client.Ping(ctx, readpref.Primary()); err != nil {
+			log.Printf("Failed to ping MongoDB (attempt %d/%d): %v", i+1, maxRetries, err)
+			if i < maxRetries-1 {
+				time.Sleep(time.Duration(i+1) * 2 * time.Second)
+				continue
+			}
+			return fmt.Errorf("failed to ping MongoDB after %d attempts: %w", maxRetries, err)
+		}
+		break
 	}
 
 	// Initialize global database configuration

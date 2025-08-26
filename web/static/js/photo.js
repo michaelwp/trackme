@@ -1,4 +1,9 @@
-
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+// const photo = document.getElementById('photo');
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+const random = Math.random().toString(36).substring(2, 8);
+const filename = `capture-${timestamp}-${random}.png`;
 
 
 // open the camera and capture the image

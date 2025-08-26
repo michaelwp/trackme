@@ -14,11 +14,11 @@ import (
 )
 
 func init() {
-	// Only load the .env file in development (optional in production)
-	if os.Getenv("ENV") == "development" {
-		if err := godotenv.Load(); err != nil {
-			log.Fatal("error loading .env file")
-		}
+	// Load the .env file if it exists (for local development)
+	// In production, environment variables are set directly
+	if err := godotenv.Load(); err != nil {
+		// Only log as info, not fatal, since .env might not exist in production
+		log.Println("No .env file found or error loading it:", err)
 	}
 }
 
